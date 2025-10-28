@@ -1,6 +1,6 @@
 # =====================================================
 # 💧 Bleb Data Analysis – Professional Edition (Sunrise Glow)
-# Developed by Stefanie Puentes Chirivi | Universidad de los Andes
+# Developed by Stefanie Puentes Chirivi & Isabel Sofia Bejarano | Universidad de los Andes
 # =====================================================
 
 import streamlit as st
