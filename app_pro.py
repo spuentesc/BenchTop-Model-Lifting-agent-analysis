@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 
 # -----------------------------
-# 🌅 General configuration
+# General configuration
 # -----------------------------
 st.set_page_config(
     page_title="Bleb Data Analysis – Professional Edition",
@@ -26,7 +26,7 @@ LIGHT_GREEN = "#A1C181"
 TEAL = "#619B8A"
 
 # -----------------------------
-# 🎨 Custom CSS (Fixed and Complete)
+# Custom CSS (Fixed and Complete)
 # -----------------------------
 st.markdown(f"""
 <style>
@@ -77,7 +77,7 @@ div[role="radiogroup"] input:checked + div:first-child {{
 
 
 # -----------------------------
-# 🏁 Header and description
+#  Header and description
 # -----------------------------
 st.title("💧 Bleb Data Analysis – Professional Edition")
 st.markdown("""
@@ -92,7 +92,7 @@ giving the physician time to operate effectively.
 st.markdown("---")
 
 # -----------------------------
-# 📤 Step 1 – Upload data
+# Step 1 – Upload data
 # -----------------------------
 st.header("Step 1 · Upload your data file")
 st.markdown("""
@@ -119,7 +119,7 @@ if uploaded_file is not None:
     bleb_height = [v - reference_value for v in height_val]
 
     # -----------------------------
-    # 📊 Step 2 – Height profile
+    #  Step 2 – Height profile
     # -----------------------------
     st.header("Step 2 · Height profile over time")
     st.markdown("""
@@ -135,7 +135,7 @@ if uploaded_file is not None:
     st.pyplot(fig1)
 
     # -----------------------------
-    # 🍃 Step 3 – Smoothing
+    #  Step 3 – Smoothing
     # -----------------------------
     st.header("Step 3 · Data smoothing")
     st.markdown("""
@@ -158,7 +158,7 @@ if uploaded_file is not None:
     st.pyplot(fig2)
 
     # -----------------------------
-    # 🧮 Step 4 – Rate of change
+    #  Step 4 – Rate of change
     # -----------------------------
     st.header("Step 4 · Rate of height change")
     st.markdown("""
@@ -198,7 +198,7 @@ if uploaded_file is not None:
         """)
 
     # -----------------------------
-    # 💾 Step 5 – Export
+    #  Step 5 – Export
     # -----------------------------
     st.header("Step 5 · Export results")
     st.markdown("Export the processed data for further analysis or record keeping.")
