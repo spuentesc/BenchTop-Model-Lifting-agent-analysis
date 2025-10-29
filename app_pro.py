@@ -108,7 +108,7 @@ uploaded_file = st.file_uploader("Upload Kinovea CSV", type="csv")
 reference_value = st.number_input("Enter reference height (mm)", min_value=0.0, step=0.1)
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(uploaded_file, sep=";")
     st.success(f"✅ File `{uploaded_file.name}` uploaded successfully.")
 
     # Extract relevant columns
@@ -135,9 +135,50 @@ if uploaded_file is not None:
     st.pyplot(fig1)
 
     # -----------------------------
-    #  Step 3 – Smoothing
+    #  Step 3 – Points remotion
     # -----------------------------
-    st.header("Step 3 · Data smoothing")
+    st.header("Step 3 · Points remotion")
+    st.markdown("""
+    If the plot shows any **noisy or inconsistent points** at the beginning or end of the dataset, you can remove them.
+
+    To do this:
+    - Set the number of points to remove **from the start** in the variable `remove_begin`.
+    - Set the number of points to remove **from the end** in the variable `remove_last`.
+    If your data looks clean and no points need to be removed, **skip the cell below** and move on to the next step.
+    """)
+    remove_begin = st.slider("Remove from start", 0, len(time_min)//3, 0)
+    remove_last = st.slider("Remove from end", 0, len(time_min)//3, 0)
+    if remove_last == 0:
+        time_preview = time_min[remove_begin:]
+        height_preview= bleb_height[remove_begin:]
+    else:
+        time_preview = time_min[remove_begin:-remove_last]
+        height_preview = bleb_height[remove_begin:-remove_last]
+    
+    # Visualization
+    fig2, ax2 = plt.subplots()
+    ax2.plot(time_min, bleb_height, color="lightgray", linestyle="--", label="Original data")
+    ax2.plot(time_preview, height_preview, color=TEAL, linewidth=2, label="Trimmed data")
+    ax2.set_xlabel("Time (min)")
+    ax2.set_ylabel("Height (mm)")
+    ax2.set_title("Effect of Removing Points")
+    ax2.grid(True, alpha=0.3)
+    ax2.legend()
+    st.pyplot(fig2)
+
+    # Button to confirm trimming
+    if st.button("✅ Confirm trimming"):
+    # Overwrite the variables used by Step 4
+        time_min = time_preview
+        bleb_height = height_preview
+        st.session_state["time_min"] = time_min
+        st.session_state["bleb_height"] = bleb_height
+        st.success(f"Trim confirmed: {remove_begin} points removed from start, {remove_last} from end.")
+    
+    # -----------------------------
+    #  Step 4 – Smoothing
+    # -----------------------------
+    st.header("Step 4 · Data smoothing")
     st.markdown("""
     A moving-average filter reduces acquisition noise and allows a clearer view of the overall trend.  
     Adjust the window size to control the level of smoothing.
@@ -158,9 +199,9 @@ if uploaded_file is not None:
     st.pyplot(fig2)
 
     # -----------------------------
-    #  Step 4 – Rate of change
+    #  Step 5 – Rate of change
     # -----------------------------
-    st.header("Step 4 · Rate of height change")
+    st.header("Step 5 · Rate of height change")
     st.markdown("""
     This plot represents the **rate of height change (dH/dt)** in mm/min.  
     Negative values correspond to retraction.  
@@ -198,9 +239,9 @@ if uploaded_file is not None:
         """)
 
     # -----------------------------
-    #  Step 5 – Export
+    #  Step 6 – Export
     # -----------------------------
-    st.header("Step 5 · Export results")
+    st.header("Step 6 · Export results")
     st.markdown("Export the processed data for further analysis or record keeping.")
     if len(bleb_data) >= 2:
         output_df = pd.DataFrame({
