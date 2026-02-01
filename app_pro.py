@@ -134,6 +134,11 @@ if uploaded_file is not None:
     ax1.grid(True, alpha=0.3)
     st.pyplot(fig1)
 
+    if "time_trimmed" not in st.session_state:
+        st.session_state["time_trimmed"] = time_min.copy()
+        st.session_state["height_trimmed"] = bleb_height.copy()
+        st.session_state["trim_confirmed"] = False
+    
     # -----------------------------
     #  Step 3 – Points remotion
     # -----------------------------
@@ -147,19 +152,22 @@ if uploaded_file is not None:
     If your data looks clean and no points need to be removed, **skip the cell below** and move on to the next step.
     """)
     
-    N = len(time_min)
-    
     #Range slider
+    disabled_trim = st.session_state.get("trim_confirmed", False)
     start_idx, end_idx = st.slider(
         "Trim data range",
         min_value=0,
-        max_value=N,
-        value=(0, N),
+        max_value=len(time_min),
+        value=(0, len(time_min)),
+        disabled=disabled_trim
     )
+    
+    if disabled_trim:
+        st.info("🔒 Trimming locked. Click 'Reset trimming' to modify.")
     
     # Convert to removal counts
     remove_begin = start_idx
-    remove_last = N - end_idx
+    remove_last = len(time_min) - end_idx
     
     if remove_last == 0:
         time_preview = time_min[remove_begin:]
@@ -181,12 +189,19 @@ if uploaded_file is not None:
 
     # Button to confirm trimming
     if st.button("✅ Confirm trimming"):
-    # Overwrite the variables used by Step 4
-        time_min = time_preview
-        bleb_height = height_preview
-        st.session_state["time_min"] = time_min
-        st.session_state["bleb_height"] = bleb_height
-        st.success(f"Trim confirmed: {remove_begin} points removed from start, {remove_last} from end.")
+        st.session_state["time_trimmed"] = time_preview.copy()
+        st.session_state["height_trimmed"] = height_preview.copy()
+        st.session_state["trim_confirmed"] = True
+
+        st.success(
+            f"Trim confirmed: {remove_begin} points removed from start, "
+            f"{remove_last} from end."
+        )
+    
+    if st.button("🔄 Reset trimming"):
+        st.session_state["trim_confirmed"] = False
+        st.session_state["time_trimmed"] = time_min.copy()
+        st.session_state["height_trimmed"] = bleb_height.copy()
     
     # -----------------------------
     #  Step 4 – Smoothing
@@ -196,8 +211,16 @@ if uploaded_file is not None:
     A moving-average filter reduces acquisition noise and allows a clearer view of the overall trend.  
     Adjust the window size to control the level of smoothing.
     """)
-    window_size = st.slider("Smoothing window (points)", 5, 100, 30)
-    df_bleb = pd.DataFrame({"time_min": time_min, "height": bleb_height})
+    
+    if not st.session_state["trim_confirmed"]:
+        st.warning("Please confirm trimming before applying smoothing.")
+        st.stop()
+
+    time_used = st.session_state["time_trimmed"]
+    height_used = st.session_state["height_trimmed"]
+    
+    window_size = st.slider("Smoothing window (points)", 5, 50, 30)
+    df_bleb = pd.DataFrame({"time_min": time_used, "height": height_used})
     df_bleb["filtered"] = df_bleb["height"].rolling(window=window_size, center=True).mean()
     df_valid = df_bleb.dropna(subset=["filtered"])
 
