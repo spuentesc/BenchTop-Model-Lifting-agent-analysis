@@ -26,7 +26,7 @@ LIGHT_GREEN = "#A1C181"
 TEAL = "#619B8A"
 
 # -----------------------------
-# Custom CSS (Fixed and Complete)
+# Custom CSS
 # -----------------------------
 st.markdown(f"""
 <style>
@@ -77,7 +77,18 @@ div[role="radiogroup"] input:checked + div:first-child {{
 
 
 # -----------------------------
-#  Header and description
+# Initialize session state variables
+# -----------------------------
+if "trim_applied" not in st.session_state:
+    st.session_state["trim_applied"] = False
+if "time_min_trimmed" not in st.session_state:
+    st.session_state["time_min_trimmed"] = None
+if "bleb_height_trimmed" not in st.session_state:
+    st.session_state["bleb_height_trimmed"] = None
+
+
+# -----------------------------
+# Header and description
 # -----------------------------
 st.title("💧 Bleb Data Analysis – Professional Edition")
 st.markdown("""
@@ -101,9 +112,11 @@ and vertical distance measurements between *Point A* and *Point B*.
 
 Before proceeding, ensure the following:
 - The **height direction** is consistent (Point A above Point B).  
+- You have recorded the **reference height** (bleb base level).  
 """)
 
 uploaded_file = st.file_uploader("Upload Kinovea CSV", type="csv")
+reference_value = st.number_input("Enter reference height (mm)", min_value=0.0, step=0.1)
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file, sep=";")
@@ -112,14 +125,12 @@ if uploaded_file is not None:
     # Extract relevant columns
     time = df.iloc[:, 0].to_list()
     height_raw = df.iloc[:, 1].to_list()
-    reference_value = df.iloc[:, 2].to_list()[0]
-    reference_value = float(reference_value.replace(",", "."))
     time_min = [v / 60000 for v in time]
     height_val = [float(str(v).replace(",", ".")) for v in height_raw]
     bleb_height = [v - reference_value for v in height_val]
 
     # -----------------------------
-    #  Step 2 – Height profile
+    # Step 2 – Height profile
     # -----------------------------
     st.header("Step 2 · Height profile over time")
     st.markdown("""
@@ -135,39 +146,25 @@ if uploaded_file is not None:
     st.pyplot(fig1)
 
     # -----------------------------
-    #  Step 3 – Points remotion
+    # Step 3 – Points trimming
     # -----------------------------
-    st.header("Step 3 · Points remotion")
+    st.header("Step 3 · Points trimming")
     st.markdown("""
     If the plot shows any **noisy or inconsistent points** at the beginning or end of the dataset, you can remove them.
 
     To do this:
     - Set the number of points to remove **from the start** in the variable `remove_begin`.
     - Set the number of points to remove **from the end** in the variable `remove_last`.
-    If your data looks clean and no points need to be removed, **skip the cell below** and move on to the next step.
     """)
-    
-    N = len(time_min)
-    
-    #Range slider
-    start_idx, end_idx = st.slider(
-        "Trim data range",
-        min_value=0,
-        max_value=N,
-        value=(0, N),
-    )
-    
-    # Convert to removal counts
-    remove_begin = start_idx
-    remove_last = N - end_idx
-    
+    remove_begin = st.slider("Remove from start", 0, len(time_min)//3, 0)
+    remove_last = st.slider("Remove from end", 0, len(time_min)//3, 0)
     if remove_last == 0:
         time_preview = time_min[remove_begin:]
-        height_preview= bleb_height[remove_begin:]
+        height_preview = bleb_height[remove_begin:]
     else:
-        time_preview = time_min[start_idx:end_idx]
-        height_preview = bleb_height[start_idx:end_idx]
-    
+        time_preview = time_min[remove_begin:-remove_last]
+        height_preview = bleb_height[remove_begin:-remove_last]
+
     # Visualization
     fig2, ax2 = plt.subplots()
     ax2.plot(time_min, bleb_height, color="lightgray", linestyle="--", label="Original data")
@@ -179,18 +176,21 @@ if uploaded_file is not None:
     ax2.legend()
     st.pyplot(fig2)
 
-    # Button to confirm trimming
+    # Confirm trimming
     if st.button("✅ Confirm trimming"):
-    # Overwrite the variables used by Step 4
-        time_min = time_preview
-        bleb_height = height_preview
-        st.session_state["time_min"] = time_min
-        st.session_state["bleb_height"] = bleb_height
+        st.session_state["time_min_trimmed"] = time_preview
+        st.session_state["bleb_height_trimmed"] = height_preview
+        st.session_state["trim_applied"] = True
         st.success(f"Trim confirmed: {remove_begin} points removed from start, {remove_last} from end.")
-    
+
     # -----------------------------
-    #  Step 4 – Smoothing
+    # Step 4 – Smoothing
     # -----------------------------
+    # If trimming applied, use trimmed data
+    if st.session_state["trim_applied"]:
+        time_min = st.session_state["time_min_trimmed"]
+        bleb_height = st.session_state["bleb_height_trimmed"]
+
     st.header("Step 4 · Data smoothing")
     st.markdown("""
     A moving-average filter reduces acquisition noise and allows a clearer view of the overall trend.  
@@ -212,7 +212,7 @@ if uploaded_file is not None:
     st.pyplot(fig2)
 
     # -----------------------------
-    #  Step 5 – Rate of change
+    # Step 5 – Rate of change
     # -----------------------------
     st.header("Step 5 · Rate of height change")
     st.markdown("""
@@ -241,27 +241,27 @@ if uploaded_file is not None:
         ax3.set_title("Rate of Height Change")
         ax3.grid(True, alpha=0.3)
         st.pyplot(fig3)
-        
+
         # Basic metric: total height drop
         drop = bleb_data[0] - bleb_data[-1]
-        rate_mean = np.mean(rate_change)
+        duration = time_data[-1] - time_data[0]
+        rate_mean = drop / duration if duration != 0 else 0
         st.markdown(f"""
         **Total height decrease:** {drop:.2f} mm  
-        **Mean bleb velocity:** {rate_mean:.3f} mm/min
+        **Mean retraction rate:** {rate_mean:.3f} mm/min
         """)
 
     # -----------------------------
-    #  Step 6 – Export
+    # Step 6 – Export
     # -----------------------------
     st.header("Step 6 · Export results")
     st.markdown("Export the processed data for further analysis or record keeping.")
     if len(bleb_data) >= 2:
         output_df = pd.DataFrame({
-                    "Time (min)": time_data,
-                    "Height (mm)": bleb_data,
-                    "Rate of change (mm/min)": rate_change,
-                    "Mean bleb velocity (mm/min)": rate_mean
-                    })
+            "Time (min)": time_data,
+            "Height (mm)": bleb_data,
+            "Rate of change (mm/min)": rate_change
+        })
         buffer = BytesIO()
         output_df.to_excel(buffer, index=False)
         st.download_button(
