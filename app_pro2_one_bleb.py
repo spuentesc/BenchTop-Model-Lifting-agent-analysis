@@ -241,14 +241,13 @@ if uploaded_file is not None:
         ax3.set_title("Rate of Height Change")
         ax3.grid(True, alpha=0.3)
         st.pyplot(fig3)
-
+        
         # Basic metric: total height drop
         drop = bleb_data[0] - bleb_data[-1]
-        duration = time_data[-1] - time_data[0]
-        rate_mean = drop / duration if duration != 0 else 0
+        rate_mean = np.mean(rate_change)
         st.markdown(f"""
         **Total height decrease:** {drop:.2f} mm  
-        **Mean retraction rate:** {rate_mean:.3f} mm/min
+        **Mean bleb velocity:** {rate_mean:.3f} mm/min
         """)
 
     # -----------------------------
@@ -258,10 +257,11 @@ if uploaded_file is not None:
     st.markdown("Export the processed data for further analysis or record keeping.")
     if len(bleb_data) >= 2:
         output_df = pd.DataFrame({
-            "Time (min)": time_data,
-            "Height (mm)": bleb_data,
-            "Rate of change (mm/min)": rate_change
-        })
+                    "Time (min)": time_data,
+                    "Height (mm)": bleb_data,
+                    "Rate of change (mm/min)": rate_change,
+                    "Mean bleb velocity (mm/min)": rate_mean
+                    })
         buffer = BytesIO()
         output_df.to_excel(buffer, index=False)
         st.download_button(
