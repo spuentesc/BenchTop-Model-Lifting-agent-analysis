@@ -269,10 +269,10 @@ if uploaded_file is not None:
         
         # Basic metric: total height drop
         drop = bleb_data[0] - bleb_data[-1]
-        rate_mean = np.mean(rate_change)
+        rate_mean = np.mean(rate_change) * 1e3
         st.markdown(f"""
         **Total height decrease:** {drop:.2f} mm  
-        **Mean bleb velocity:** {rate_mean:.3f} mm/min
+        **Mean bleb velocity:** {rate_mean:.3f} × 10⁻³ mm/min
         """)
 
     # -----------------------------
