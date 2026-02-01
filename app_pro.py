@@ -147,9 +147,11 @@ if uploaded_file is not None:
     If the plot shows any **noisy or inconsistent points** at the beginning or end of the dataset, you can remove them.
 
     To do this:
-    - Set the number of points to remove **from the start** in the variable `remove_begin`.
-    - Set the number of points to remove **from the end** in the variable `remove_last`.
-    If your data looks clean and no points need to be removed, **skip the cell below** and move on to the next step.
+    -Move the left handle to the right to remove points from the start of the time series.
+    -Move the right handle to the left to remove points from the end of the time series.
+    -The highlighted curve shows a preview of the trimmed data.
+    Once you are satisfied with the trimming, click Confirm trimming to lock the selection and use the trimmed data in the following steps.
+    If no trimming is needed, leave the full range selected and proceed to the next step.
     """)
     
     #Range slider
@@ -219,7 +221,7 @@ if uploaded_file is not None:
     time_used = st.session_state["time_trimmed"]
     height_used = st.session_state["height_trimmed"]
     
-    window_size = st.slider("Smoothing window (points)", 5, 50, 30)
+    window_size = st.slider("Smoothing window (points)", 5, 20, 5)
     df_bleb = pd.DataFrame({"time_min": time_used, "height": height_used})
     df_bleb["filtered"] = df_bleb["height"].rolling(window=window_size, center=True).mean()
     df_valid = df_bleb.dropna(subset=["filtered"])
