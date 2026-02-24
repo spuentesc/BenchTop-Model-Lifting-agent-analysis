@@ -227,9 +227,9 @@ if uploaded_file is not None:
     df_valid = df_bleb.dropna(subset=["filtered"])
 
     fig2, ax2 = plt.subplots()
-    ax2.plot(df_bleb["time_min"], df_bleb["height"], label="Raw data", color=TEAL, alpha=0.5)
+    ax2.plot(df_bleb["time_min"], df_bleb["height"], label="Raw data", color=TEAL, alpha=0.2)
     ax2.plot(df_valid["time_min"], df_valid["filtered"],
-             label=f"Smoothed (window = {window_size})", color=YELLOW, linewidth=2)
+             label=f"Smoothed (window = {window_size})", color=DARK_BLUE, linewidth=2)
     ax2.set_xlabel("Time (min)")
     ax2.set_ylabel("Height (mm)")
     ax2.legend()
