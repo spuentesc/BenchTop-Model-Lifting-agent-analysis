@@ -221,7 +221,7 @@ if uploaded_file is not None:
     time_used = st.session_state["time_trimmed"]
     height_used = st.session_state["height_trimmed"]
     
-    window_size = st.slider("Smoothing window (points)", 1, 10, 5)
+    window_size = st.slider("Smoothing window (points)", 1, 10, 1)
     df_bleb = pd.DataFrame({"time_min": time_used, "height": height_used})
     df_bleb["filtered"] = df_bleb["height"].rolling(window=window_size, center=True).mean()
     df_valid = df_bleb.dropna(subset=["filtered"])
