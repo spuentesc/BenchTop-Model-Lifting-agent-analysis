@@ -221,13 +221,13 @@ if uploaded_file is not None:
     time_used = st.session_state["time_trimmed"]
     height_used = st.session_state["height_trimmed"]
     
-    window_size = st.slider("Smoothing window (points)", 5, 20, 5)
+    window_size = st.slider("Smoothing window (points)", 1, 10, 5)
     df_bleb = pd.DataFrame({"time_min": time_used, "height": height_used})
     df_bleb["filtered"] = df_bleb["height"].rolling(window=window_size, center=True).mean()
     df_valid = df_bleb.dropna(subset=["filtered"])
 
     fig2, ax2 = plt.subplots()
-    ax2.plot(df_bleb["time_min"], df_bleb["height"], label="Raw data", color=ORANGE, alpha=0.5)
+    ax2.plot(df_bleb["time_min"], df_bleb["height"], label="Raw data", color=TEAL, alpha=0.5)
     ax2.plot(df_valid["time_min"], df_valid["filtered"],
              label=f"Smoothed (window = {window_size})", color=YELLOW, linewidth=2)
     ax2.set_xlabel("Time (min)")
