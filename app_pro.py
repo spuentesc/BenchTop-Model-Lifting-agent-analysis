@@ -229,7 +229,7 @@ if uploaded_file is not None:
     fig2, ax2 = plt.subplots()
     ax2.plot(df_bleb["time_min"], df_bleb["height"], label="Raw data", color=TEAL)
     ax2.plot(df_valid["time_min"], df_valid["filtered"],
-             label=f"Smoothed (window = {window_size})", color=DARK_BLUE, linewidth=1)
+             label=f"Smoothed (window = {window_size})", color=DARK_BLUE, linewidth=2)
     ax2.set_xlabel("Time (min)")
     ax2.set_ylabel("Height (mm)")
     ax2.legend()
