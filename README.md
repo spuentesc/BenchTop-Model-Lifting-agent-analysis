@@ -1,4 +1,4 @@
-# 💧 Bleb Data Analysis App
+# Bleb Data Analysis App
 
 This web app processes Kinovea tracking data (.csv) to calculate and visualize
 bleb height over time, apply smoothing filters, compute rate of change,
